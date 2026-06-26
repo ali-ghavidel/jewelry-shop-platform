@@ -1,0 +1,16 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: gold_price_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: gold_user
+      POSTGRES_PASSWORD: gold_password
+      POSTGRES_DB: gold_price_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - gold_price_postgres_data:/var/lib/postgresql/data
+
+volumes:
+  gold_price_postgres_data:

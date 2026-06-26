@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_0n6s2sj" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.28.0">
+  <collaboration id="Collaboration_0l8ku4a">
+    <participant id="Participant_0dcbxkr" name="احراز هویت با OTP" processRef="Process_0l3e15q" />
+  </collaboration>
+  <process id="Process_0l3e15q" isExecutable="true">
+    <laneSet id="LaneSet_0avh3bv">
+      <lane id="Lane_1u0iok7" name="کاربر">
+        <flowNodeRef>Event_0su37j2</flowNodeRef>
+        <flowNodeRef>Activity_0p0acxr</flowNodeRef>
+        <flowNodeRef>Gateway_0j18vdm</flowNodeRef>
+        <flowNodeRef>Activity_0ljtt0u</flowNodeRef>
+        <flowNodeRef>Event_1ldhjho</flowNodeRef>
+        <flowNodeRef>Activity_0d83l0w</flowNodeRef>
+        <flowNodeRef>Gateway_0counter</flowNodeRef>
+        <flowNodeRef>Event_MaxRetry</flowNodeRef>
+      </lane>
+      <lane id="Lane_0ks6dyq" name="سیستم">
+        <flowNodeRef>Activity_0hmirg8</flowNodeRef>
+        <flowNodeRef>Activity_0mp0hjc</flowNodeRef>
+        <flowNodeRef>Activity_14gns1g</flowNodeRef>
+        <flowNodeRef>Gateway_139kof3</flowNodeRef>
+        <flowNodeRef>Activity_1o4lexh</flowNodeRef>
+        <flowNodeRef>Activity_0l1imgr</flowNodeRef>
+        <flowNodeRef>Event_Error</flowNodeRef>
+        <flowNodeRef>Event_Success</flowNodeRef>
+      </lane>
+    </laneSet>
+    <startEvent id="Event_0su37j2" name="شروع">
+      <outgoing>Flow_0xunbcm</outgoing>
+    </startEvent>
+    <task id="Activity_0p0acxr" name="ورود شماره موبایل و تایید">
+      <incoming>Flow_0xunbcm</incoming>
+      <outgoing>Flow_0q1fohw</outgoing>
+    </task>
+    <task id="Activity_0hmirg8" name="بررسی شماره">
+      <incoming>Flow_0q1fohw</incoming>
+      <outgoing>Flow_08bxxf3</outgoing>
+    </task>
+    <task id="Activity_0mp0hjc" name="ارسال کد OTP به کاربر">
+      <incoming>Flow_08bxxf3</incoming>
+      <incoming>Flow_Resend</incoming>
+      <outgoing>Flow_0n0fwua</outgoing>
+    </task>
+    <task id="Activity_14gns1g" name="نمایش صفحه ورود کد OTP">
+      <incoming>Flow_0n0fwua</incoming>
+      <outgoing>Flow_0ww7y5g</outgoing>
+    </task>
+    <exclusiveGateway id="Gateway_0j18vdm" name="کد OTP دریافت شده است؟">
+      <incoming>Flow_0ww7y5g</incoming>
+      <outgoing>Flow_0ew5jdh</outgoing>
+      <outgoing>Flow_NotReceived</outgoing>
+    </exclusiveGateway>
+    <task id="Activity_0ljtt0u" name="ورود کد OTP و تایید">
+      <incoming>Flow_0ew5jdh</incoming>
+      <outgoing>Flow_1ks5xuz</outgoing>
+    </task>
+    <intermediateCatchEvent id="Event_1ldhjho" name="انتظار 1 دقیقه و 30 ثانیه">
+      <incoming>Flow_NotReceived</incoming>
+      <outgoing>Flow_0jmmdix</outgoing>
+      <timerEventDefinition id="TimerEventDefinition_1jty89s">
+        <timeDuration xsi:type="tFormalExpression">PT1M30S</timeDuration>
+      </timerEventDefinition>
+    </intermediateCatchEvent>
+    <task id="Activity_0d83l0w" name="فشردن متن ارسال مجدد کد OTP">
+      <incoming>Flow_0jmmdix</incoming>
+      <outgoing>Flow_ToCounter</outgoing>
+    </task>
+    <exclusiveGateway id="Gateway_0counter" name="تعداد ارسال مجدد &lt; 3؟">
+      <incoming>Flow_ToCounter</incoming>
+      <outgoing>Flow_Resend</outgoing>
+      <outgoing>Flow_ExceededRetry</outgoing>
+    </exclusiveGateway>
+    <endEvent id="Event_MaxRetry" name="خطا: تعداد ارسال مجدد بیش از حد">
+      <incoming>Flow_ExceededRetry</incoming>
+      <errorEventDefinition id="ErrorEventDefinition_1" />
+    </endEvent>
+    <exclusiveGateway id="Gateway_139kof3" name="کد OTP صحیح است؟">
+      <incoming>Flow_1ks5xuz</incoming>
+      <outgoing>Flow_0z3sqm2</outgoing>
+      <outgoing>Flow_Invalid</outgoing>
+    </exclusiveGateway>
+    <task id="Activity_1o4lexh" name="ارسال خطا">
+      <incoming>Flow_Invalid</incoming>
+      <outgoing>Flow_ToErrorEnd</outgoing>
+    </task>
+    <task id="Activity_0l1imgr" name="ارسال موفق بودن ورود و اختصاص توکن">
+      <incoming>Flow_0z3sqm2</incoming>
+      <outgoing>Flow_ToSuccessEnd</outgoing>
+    </task>
+    <endEvent id="Event_Error" name="پایان - خطا">
+      <incoming>Flow_ToErrorEnd</incoming>
+    </endEvent>
+    <endEvent id="Event_Success" name="پایان - موفق">
+      <incoming>Flow_ToSuccessEnd</incoming>
+    </endEvent>
+    <sequenceFlow id="Flow_0xunbcm" sourceRef="Event_0su37j2" targetRef="Activity_0p0acxr" />
+    <sequenceFlow id="Flow_0q1fohw" sourceRef="Activity_0p0acxr" targetRef="Activity_0hmirg8" />
+    <sequenceFlow id="Flow_08bxxf3" sourceRef="Activity_0hmirg8" targetRef="Activity_0mp0hjc" />
+    <sequenceFlow id="Flow_Resend" name="بله" sourceRef="Gateway_0counter" targetRef="Activity_0mp0hjc">
+      <conditionExpression xsi:type="tFormalExpression">${resendCount &lt; 3}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_0n0fwua" sourceRef="Activity_0mp0hjc" targetRef="Activity_14gns1g" />
+    <sequenceFlow id="Flow_0ww7y5g" sourceRef="Activity_14gns1g" targetRef="Gateway_0j18vdm" />
+    <sequenceFlow id="Flow_0ew5jdh" name="بله" sourceRef="Gateway_0j18vdm" targetRef="Activity_0ljtt0u">
+      <conditionExpression xsi:type="tFormalExpression">${otpReceived == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_NotReceived" name="خیر" sourceRef="Gateway_0j18vdm" targetRef="Event_1ldhjho">
+      <conditionExpression xsi:type="tFormalExpression">${otpReceived == false}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_1ks5xuz" sourceRef="Activity_0ljtt0u" targetRef="Gateway_139kof3" />
+    <sequenceFlow id="Flow_0jmmdix" sourceRef="Event_1ldhjho" targetRef="Activity_0d83l0w" />
+    <sequenceFlow id="Flow_ToCounter" sourceRef="Activity_0d83l0w" targetRef="Gateway_0counter" />
+    <sequenceFlow id="Flow_ExceededRetry" name="خیر" sourceRef="Gateway_0counter" targetRef="Event_MaxRetry">
+      <conditionExpression xsi:type="tFormalExpression">${resendCount &gt;= 3}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_0z3sqm2" name="بله" sourceRef="Gateway_139kof3" targetRef="Activity_0l1imgr">
+      <conditionExpression xsi:type="tFormalExpression">${otpValid == true}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_Invalid" name="خیر" sourceRef="Gateway_139kof3" targetRef="Activity_1o4lexh">
+      <conditionExpression xsi:type="tFormalExpression">${otpValid == false}</conditionExpression>
+    </sequenceFlow>
+    <sequenceFlow id="Flow_ToErrorEnd" sourceRef="Activity_1o4lexh" targetRef="Event_Error" />
+    <sequenceFlow id="Flow_ToSuccessEnd" sourceRef="Activity_0l1imgr" targetRef="Event_Success" />
+  </process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="Collaboration_0l8ku4a">
+      <bpmndi:BPMNShape id="Participant_0dcbxkr_di" bpmnElement="Participant_0dcbxkr" isHorizontal="true">
+        <dc:Bounds x="160" y="80" width="1580" height="600" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_1u0iok7_di" bpmnElement="Lane_1u0iok7" isHorizontal="true">
+        <dc:Bounds x="190" y="80" width="1550" height="300" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Lane_0ks6dyq_di" bpmnElement="Lane_0ks6dyq" isHorizontal="true">
+        <dc:Bounds x="190" y="380" width="1550" height="300" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</definitions>
